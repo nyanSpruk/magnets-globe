@@ -1,4 +1,5 @@
 import prisma from "@/lib/prisma";
+import { AllCountries } from "@/types/country";
 import { revalidatePath } from "next/cache";
 
 export const addCountry = async (formData: FormData) => {
@@ -14,7 +15,7 @@ export const addCountry = async (formData: FormData) => {
   revalidatePath("/");
 };
 
-export const getAllCountries = async () => {
+export const getAllCountries = async (): Promise<AllCountries[]> => {
   "use server";
 
   // Step 1: Fetch the grouped countries with counts
