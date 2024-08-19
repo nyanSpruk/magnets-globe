@@ -10,5 +10,6 @@ generator client {
 model Country {
   id       String  @id @default(auto()) @map("_id") @db.ObjectId
   code     String
+  name     String
   imageUrl String?
 }

@@ -1,13 +1,14 @@
+"use server";
+
 import prisma from "@/lib/prisma";
 import { AllCountries } from "@/types/country";
 import { revalidatePath } from "next/cache";
 
 export const addCountry = async (formData: FormData) => {
-  "use server";
-
   await prisma.country.create({
     data: {
       code: formData.get("code") as string,
+      name: formData.get("name") as string,
       imageUrl: formData.get("imageUrl") as string,
     },
   });
@@ -16,8 +17,6 @@ export const addCountry = async (formData: FormData) => {
 };
 
 export const getAllCountries = async (): Promise<AllCountries[]> => {
-  "use server";
-
   // Step 1: Fetch the grouped countries with counts
   const groupedCountries = await prisma.country.groupBy({
     by: ["code"], // Group by country code
@@ -41,4 +40,38 @@ export const getAllCountries = async (): Promise<AllCountries[]> => {
   });
 
   return result;
+};
+
+export const getCountryOccurrences = async () => {
+  const groupedCountries = await prisma.country.groupBy({
+    by: ["code", "name"],
+    _count: {
+      code: true,
+    },
+  });
+
+  return groupedCountries.map((group) => ({
+    code: group.code,
+    name: group.name,
+    count: group._count.code,
+  }));
+};
+
+export const deleteCountryOccurrences = async (code: string, count: number) => {
+  const countriesToDelete = await prisma.country.findMany({
+    where: { code },
+    take: count, // Limit the number of deletions
+  });
+
+  const idsToDelete = countriesToDelete.map((country) => country.id);
+
+  await prisma.country.deleteMany({
+    where: {
+      id: {
+        in: idsToDelete,
+      },
+    },
+  });
+
+  revalidatePath("/delete-country");
 };

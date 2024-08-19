@@ -7,6 +7,7 @@ import {
 } from "@/types/country";
 import dynamic from "next/dynamic";
 import { useEffect } from "react";
+import { isMobile } from "react-device-detect";
 // import Globe from "react-globe.gl";
 
 interface GlobeVizProps {
@@ -33,9 +34,18 @@ export const GlobeComponent: React.FC<GlobeVizProps> = ({ countriesData }) => {
     return label;
   }
 
+  // Globe size settings
+  const size = isMobile ? 320 : 1080; // px on one side
+  const extraStyle = {
+    width: `${size}px`,
+    clipPath: `circle(${size / 2}px at ${size / 2}px ${size / 2}px)`,
+  };
+
   return (
-    <div>
+    <div style={extraStyle}>
       <Globe
+        width={size}
+        height={size}
         globeImageUrl={"//unpkg.com/three-globe/example/img/earth-day.jpg"}
         backgroundImageUrl={"//unpkg.com/three-globe/example/img/night-sky.png"}
         polygonsData={countriesData.allCountries.features}
