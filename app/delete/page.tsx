@@ -6,6 +6,7 @@ import {
   deleteCountryOccurrences,
 } from "@/app/actions/country";
 import { Button } from "@/components/ui/button";
+import Link from "next/link";
 
 interface CountryOccurrences {
   code: string;
@@ -101,17 +102,26 @@ export default function DeleteCountryPage() {
         </div>
       )}
 
-      <Button
-        onClick={handleDelete}
-        disabled={
-          !selectedCountry ||
-          deleteCount <= 0 ||
-          deleteCount > (selectedCountry?.count || 0)
-        }
-        className="w-full bg-red-500 text-white py-2 px-4 rounded-md hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 disabled:bg-gray-400 disabled:cursor-not-allowed"
-      >
-        Delete
-      </Button>
+      <div className="flex gap-4">
+        <Button
+          onClick={handleDelete}
+          disabled={
+            !selectedCountry ||
+            deleteCount === null ||
+            deleteCount <= 0 ||
+            deleteCount > (selectedCountry?.count || 0)
+          }
+          className="w-full bg-red-500 text-white py-2 px-4 rounded-md hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 disabled:bg-gray-400 disabled:cursor-not-allowed"
+        >
+          Delete
+        </Button>
+
+        <Link href="/">
+          <Button className="w-full bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500">
+            Back to Main Screen
+          </Button>
+        </Link>
+      </div>
     </div>
   );
 }
