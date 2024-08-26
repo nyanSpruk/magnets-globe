@@ -12,7 +12,7 @@ interface SearchComponentProps {
   allCountries: ICountry[];
 }
 
-const SearchComponent: React.FC<SearchComponentProps> = ({ allCountries }) => {
+const SearchCountry: React.FC<SearchComponentProps> = ({ allCountries }) => {
   const [query, setQuery] = useState<string>("");
   const [results, setResults] = useState<ICountry[]>([]);
 
@@ -87,4 +87,4 @@ const SearchComponent: React.FC<SearchComponentProps> = ({ allCountries }) => {
   );
 };
 
-export default SearchComponent;
+export default SearchCountry;
