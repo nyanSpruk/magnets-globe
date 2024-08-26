@@ -26,3 +26,14 @@ export interface AllCountries {
   count: number;
   occurrences: Country[];
 }
+
+export interface CountryData {
+  imageUrl: string;
+}
+
+export interface ICountry {
+  code: string;
+  name: string;
+  count: number;
+  countries: CountryData[];
+}

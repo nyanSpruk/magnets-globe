@@ -1,7 +1,7 @@
 "use server";
 
 import prisma from "@/lib/prisma";
-import { AllCountries } from "@/types/country";
+import { AllCountries, ICountry } from "@/types/country";
 import { revalidatePath } from "next/cache";
 
 export const addCountry = async (formData: FormData) => {
@@ -74,4 +74,40 @@ export const deleteCountryOccurrences = async (code: string, count: number) => {
   });
 
   revalidatePath("/delete-country");
+};
+
+export const getCountriesWithImages = async (): Promise<ICountry[]> => {
+  // Step 1: Group countries by code and count the occurrences of each code
+  const groupedCountries = await prisma.country.groupBy({
+    by: ["code"],
+    _count: {
+      code: true, // Count the number of occurrences for each country code
+    },
+  });
+
+  // Step 2: Fetch countries grouped by code to get their names and imageUrls
+  const allCountries = await prisma.country.findMany();
+
+  // Step 3: Combine the grouped data with full country details
+  const result = groupedCountries.map((group) => {
+    const countriesWithImages = allCountries
+      .filter((country) => country.code === group.code)
+      .map((country) => ({
+        imageUrl: country.imageUrl ?? "", // Convert null to an empty string
+      }))
+      .filter((country) => country.imageUrl !== ""); // Optionally filter out countries without images
+
+    const countryName = allCountries.find(
+      (country) => country.code === group.code
+    )?.name;
+
+    return {
+      code: group.code,
+      name: countryName || "",
+      count: group._count.code,
+      countries: countriesWithImages,
+    };
+  });
+
+  return result;
 };

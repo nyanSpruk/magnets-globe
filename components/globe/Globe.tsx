@@ -35,7 +35,7 @@ export const GlobeComponent: React.FC<GlobeVizProps> = ({ countriesData }) => {
   }
 
   // Globe size settings
-  const size = isMobile ? 320 : 1080; // px on one side
+  const size = isMobile ? 320 : 720; // px on one side
   const extraStyle = {
     width: `${size}px`,
     clipPath: `circle(${size / 2}px at ${size / 2}px ${size / 2}px)`,
@@ -47,7 +47,8 @@ export const GlobeComponent: React.FC<GlobeVizProps> = ({ countriesData }) => {
         width={size}
         height={size}
         globeImageUrl={"//unpkg.com/three-globe/example/img/earth-day.jpg"}
-        backgroundImageUrl={"//unpkg.com/three-globe/example/img/night-sky.png"}
+        // backgroundImageUrl={"//unpkg.com/three-globe/example/img/night-sky.png"}
+        backgroundColor="rgba(0,0,0,0)"
         polygonsData={countriesData.allCountries.features}
         polygonCapColor={(obj: object) => {
           const feat = obj as GeoJsonCountryFeature; // Type assertion
