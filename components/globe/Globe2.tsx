@@ -5,7 +5,7 @@ import {
   GeoJsonCountryFeature,
   AllCountries,
 } from "@/types/country";
-import React, { useRef, useEffect } from "react";
+import React, { useRef, useEffect, useState } from "react";
 import Globe, { GlobeMethods } from "react-globe.gl";
 import { isMobile } from "react-device-detect";
 import { cn } from "@/lib/utils";
@@ -27,6 +27,11 @@ const Globe2: React.FC<GlobeVizProps> = ({
   isGlobeMoved,
 }) => {
   const globeEl = useRef<GlobeMethods | undefined>(undefined);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [dimensions, setDimensions] = useState({
+    width: window.innerWidth,
+    height: window.innerHeight,
+  });
 
   function getLabel(obj: object): string {
     const country = obj as GeoJsonCountryFeature;
@@ -40,11 +45,11 @@ const Globe2: React.FC<GlobeVizProps> = ({
         (c: AllCountries) => c.code === country.properties.ISO_A2
       )?.count ?? 0;
     const label = `<b class="text-${dayColour} dark:text-${nightColour}">${name} - number of magnets: ${count}</b>`;
-    return isGlobeMoved ? name : label;
+    return label;
   }
 
   // Determine size and style based on isGlobeMoved and device type
-  const size = isGlobeMoved ? 1200 : isMobile ? 320 : 900; // px on one side
+  const size = isGlobeMoved ? 1200 : isMobile ? 320 : 800; // px on one side
   const extraStyle = {
     width: `${size}px`,
     height: `${size}px`,
@@ -52,33 +57,62 @@ const Globe2: React.FC<GlobeVizProps> = ({
   };
 
   useEffect(() => {
+    const handleResize = () => {
+      setDimensions({ width: window.innerWidth, height: window.innerHeight });
+    };
+
+    // Add event listener for window resize
+    window.addEventListener("resize", handleResize);
+
+    // Cleanup event listener on component unmount
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
+  }, []);
+
+  useEffect(() => {
     if (globeEl.current) {
-      globeEl.current.pointOfView({ lat: 0, lng: 0, altitude: 5 });
+      globeEl.current.pointOfView({ lat: 0, lng: 0, altitude: 3 });
 
       const controls = globeEl.current.controls();
       if (controls) {
         controls.autoRotate = true;
         controls.autoRotateSpeed = 0.75;
+
+        // Define min and max zoom values
+        const minZoom = 2;
+        const maxZoom = 5;
+
+        // Function to clamp zoom levels
+        const clampZoom = () => {
+          const pov = globeEl.current!.pointOfView();
+          if (pov.altitude < minZoom) {
+            globeEl.current!.pointOfView({ altitude: minZoom }, 0);
+          } else if (pov.altitude > maxZoom) {
+            globeEl.current!.pointOfView({ altitude: maxZoom }, 0);
+          }
+        };
+
+        // Attach change event listener to controls
+        controls.addEventListener("change", clampZoom);
+
+        // Clean up event listener on component unmount
+        return () => {
+          controls.removeEventListener("change", clampZoom);
+        };
       }
     }
   }, []);
 
   useEffect(() => {
     if (globeEl.current) {
-      const controls = globeEl.current.controls();
-
-      const targetAltitude = isGlobeMoved ? 1.75 : 5;
-
+      const targetAltitude = isGlobeMoved ? 1.75 : 3;
       const currentPOV = globeEl.current.pointOfView();
 
       if (isGlobeMoved) {
-        if (controls) {
-          controls.enableZoom = false;
-        }
+        globeEl.current.controls().enableZoom = false;
       } else {
-        if (controls) {
-          controls.enableZoom = true;
-        }
+        globeEl.current.controls().enableZoom = true;
       }
 
       globeEl.current.pointOfView(
@@ -93,7 +127,6 @@ const Globe2: React.FC<GlobeVizProps> = ({
   }, [isGlobeMoved]);
 
   const handleCountryClick = async (obj: object) => {
-    if (isGlobeMoved) return;
     const country = obj as GeoJsonCountryFeature;
     console.log("Country clicked:", country);
     console.log("Country properties:", country.properties);
@@ -105,13 +138,16 @@ const Globe2: React.FC<GlobeVizProps> = ({
 
   return (
     <div
+      ref={containerRef}
       className={cn("flex justify-center items-center", className)}
-      style={extraStyle} // Apply dynamic styles
+      style={{ width: dimensions.width, height: dimensions.height }} // Dynamic dimensions
     >
       <Globe
         globeImageUrl="//unpkg.com/three-globe/example/img/earth-day.jpg"
         polygonsData={countriesData.allCountries.features}
         backgroundColor="rgba(0,0,0,0)"
+        width={dimensions.width} // Pass updated dimensions to the globe
+        height={dimensions.height} // Pass updated dimensions to the globe
         polygonCapColor={(obj: object) => {
           const feat = obj as GeoJsonCountryFeature;
 
