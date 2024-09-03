@@ -1,13 +1,22 @@
-import {
-  addCountry,
-  getAllCountries,
-  getCountriesWithImages,
-} from "./actions/country";
+// pages/index.tsx
+
+import { getAllCountries, getCountryByName } from "./actions/country";
 import fs from "fs";
 import path from "path";
-import { GlobeComponent } from "@/components/globe/Globe";
 import { AllCountries, GeoJsonCountryFeature } from "@/types/country";
-import SearchCountry from "@/components/custom_ui/SearchCountry";
+import dynamic from "next/dynamic";
+import BlurOverlay from "@/components/custom_ui/BlurOverlay";
+import Globe2 from "@/components/globe/Globe2";
+import Navbar from "@/components/custom_ui/Navbar";
+
+// Lazy load the client component
+const HomePageClient = dynamic(
+  () => import("../components/custom_ui/HomePageClient"),
+  {
+    ssr: false, // Ensure this is a client-side component
+  }
+);
+
 interface GeoJsonData {
   type: string;
   features: GeoJsonCountryFeature[];
@@ -34,13 +43,25 @@ const fetchCountriesData = async (): Promise<{
 export default async function HomePage() {
   const countriesData = await fetchCountriesData();
 
-  const searchCountriesData = await getCountriesWithImages();
-  console.log(searchCountriesData);
-
   return (
-    <div className="flex h-screen items-center justify-center gap-16 bg-[url('https://unpkg.com/three-globe@2.31.1/example/img/night-sky.png')]">
-      <GlobeComponent countriesData={countriesData} />
-      <SearchCountry allCountries={searchCountriesData} />
-    </div>
+    <BlurOverlay>
+      <div className="flex justify-center items-center text-white bg-black h-screen overflow-hidden bg-[url('https://unpkg.com/three-globe@2.31.1/example/img/night-sky.png')] bg-cover bg-center">
+        <div className="flex justify-center items-center max-w-screen-lg h-screen ">
+          <HomePageClient countriesData={countriesData} />
+        </div>
+      </div>
+    </BlurOverlay>
   );
 }
+
+// <BlurOverlay>
+//   <div className="bg-[url('https://unpkg.com/three-globe@2.31.1/example/img/night-sky.png')] bg-cover bg-center  min-h-screen">
+//     {/* Outer div to set full width and background */}
+//     <div className="flex justify-center items-center min-h-screen">
+//       {/* Centered container with max width */}
+//       <div className="max-w-5xl">
+//         <HomePageClient countriesData={countriesData} />
+//       </div>
+//     </div>
+//   </div>
+// </BlurOverlay>

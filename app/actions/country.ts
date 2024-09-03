@@ -111,3 +111,41 @@ export const getCountriesWithImages = async (): Promise<ICountry[]> => {
 
   return result;
 };
+
+export const getCountryByName = async (
+  name: string
+): Promise<ICountry | null> => {
+  // Step 1: Find the country with the given name
+  const country = await prisma.country.findFirst({
+    where: {
+      name: name, // Filter by the provided country name
+    },
+  });
+
+  if (!country) {
+    return null; // Return null if no country is found
+  }
+
+  // Step 2: Fetch all countries with the same code as the found country
+  const countriesWithSameCode = await prisma.country.findMany({
+    where: {
+      code: country.code, // Fetch countries with the same code
+    },
+  });
+
+  // Step 3: Filter out countries with images and prepare the result
+  const countriesWithImages = countriesWithSameCode.map((country) => ({
+    imageUrl: country.imageUrl ?? "", // Convert null to an empty string
+  }));
+  // .filter((country) => country.imageUrl !== ""); // Optionally filter out countries without images
+
+  // Step 4: Prepare the result
+  const result = {
+    code: country.code,
+    name: country.name,
+    count: countriesWithImages.length,
+    countries: countriesWithImages,
+  };
+
+  return result;
+};

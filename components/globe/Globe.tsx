@@ -5,10 +5,9 @@ import {
   GeoJsonCountryFeature,
   AllCountries,
 } from "@/types/country";
-import dynamic from "next/dynamic";
-import { useEffect } from "react";
+import Globe, { GlobeMethods } from "react-globe.gl";
 import { isMobile } from "react-device-detect";
-// import Globe from "react-globe.gl";
+import { useEffect, useRef } from "react";
 
 interface GlobeVizProps {
   countriesData: {
@@ -16,9 +15,22 @@ interface GlobeVizProps {
     countriesInDatabase: AllCountries[];
   };
 }
-const Globe = dynamic(() => import("react-globe.gl"), { ssr: false });
 
 export const GlobeComponent: React.FC<GlobeVizProps> = ({ countriesData }) => {
+  const globeEl = useRef<GlobeMethods | undefined>(undefined);
+  useEffect(() => {
+    if (globeEl.current) {
+      // Set the initial point of view
+      globeEl.current.pointOfView({ lat: 0, lng: 0, altitude: 2 });
+
+      // Enable auto-rotation using the controls object
+      const controls = globeEl.current.controls();
+      if (controls) {
+        controls.autoRotate = true; // Enable auto-rotation
+        controls.autoRotateSpeed = 1.0; // Optional: set rotation speed
+      }
+    }
+  }, []);
   function getLabel(obj: object): string {
     const country = obj as GeoJsonCountryFeature;
     const name = country.properties.ADMIN;
@@ -63,23 +75,6 @@ export const GlobeComponent: React.FC<GlobeVizProps> = ({ countriesData }) => {
         polygonSideColor={() => "rgba(0, 0, 0, 0.5)"}
         polygonStrokeColor={() => "#111"}
         polygonLabel={getLabel}
-        // onPolygonHover={(
-        //   polygon: object | null,
-        //   prevPolygon: object | null
-        // ) => {
-        //   return {
-        //     polygonAltitude: (d: GeoJsonCountryFeature) =>
-        //       d === polygon ? 0.12 : 0.06,
-        //     polygonCapColor: (d: GeoJsonCountryFeature) =>
-        //       d === polygon
-        //         ? "steelblue"
-        //         : countriesData.countriesInDatabase.includes(
-        //             d.properties.ISO_A2
-        //           )
-        //         ? "red"
-        //         : "gray",
-        //   };
-        // }}
         polygonsTransitionDuration={300}
       />
     </div>
